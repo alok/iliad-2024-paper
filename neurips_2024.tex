@@ -1,0 +1,320 @@
+% !TEX program = xelatex
+
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2024
+
+% ready for submission
+\usepackage[final]{neurips_2024}
+
+% Standard NeurIPS packages
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{amssymb}
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{todonotes}      % for todo notes
+
+% Lean syntax highlighting setup
+\usepackage[cache=false]{minted}
+\usemintedstyle{tango}
+
+\title{Lean 4 for Software Engineering}
+
+\author{
+  Alok Singh \\
+  \texttt{alokbeniwal@gmail.com} \\
+}
+
+% Add after other packages but before \begin{document}
+% \bibliography{neurips_2024}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  Lean 4 combines formal verification with systems programming. Unlike typical
+  theorem provers, it runs at 20-50\% of C++ speeds. Its \texttt{sorry} construct
+  enables incremental verification - developers can specify properties now and
+  prove them later. Through case studies in ML infrastructure (llm.lean) and
+  scientific computing (scilean), I show how this approach maintains correctness
+  without slowing development. Lean 4's metaprogramming and custom notation let
+  developers build domain-specific abstractions with formal guarantees. The result:
+  practical software that's both fast and correct.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+\todo{Basic intro to Lean 4}
+Lean 4 is a programming language which is also a theorem prover.
+
+It is not a language for beginners
+
+\begin{minted}{lean}
+def sum (list : List Nat) : Nat := Id.run do
+  let mut total := 0
+  for element in list do
+    total := total + element
+  return total
+\end{minted}
+
+\section{Why Lean 4?}
+
+There are \textit{many} programming languages, and there are many theorem provers. But few are both. Most programming languages have to resort to custom string parsing, like SymPy, which fundamentally limits their appeal to their natural userbase: mathematicians.
+
+Most theorem provers are only technically programming languages, and lack tooling for software engineering like a package manager, build tool, documentation tool, linter, etc. They are usually implemented in a separate language like OCaml (Coq) or Haskell (Agda), and tend to be slow.\todo{cite benchmark for coq/agda speed}
+
+This quote from one of the creators of Isabelle illustrates the issue:
+
+(Lean 4 lacks a formatter, but thankfully AI fills this gap very well.)
+
+\begin{quote}
+  But university departments are not software houses. Programs like Isabelle are not products: when they have served
+  their purpose, they are discarded.% TODO add back: \cite{isabelle-isar-ref}
+
+  Lawrence C. Paulson, ``Isabelle: The Next 700 Theorem Provers''
+\end{quote}
+
+The issue is that a theorem prover \textit{is} a piece of software, and software grows. There is a lot of overlap between the needs of a theorem prover and a general purpose programming language, and being good at both unlocks many benefits.
+
+% example: https://github.com/leanprover-community/mathlib4/pull/18303/files (linter that checks minimal imports)
+
+% https://old.reddit.com/r/haskell/comments/z55hha/review_of_lean_4/
+% https://leanprover.github.io/papers/do.pdf (mutable notation, instead of map/filter/fold)
+
+\todo{that reddit comment}
+
+\todo{Discuss software + math integration}
+\todo{mention how fast lean 4 is, 20-50\% speed of C++ (cite)}
+\section{The Lean Community}
+\subsection{A Critical Mass in Mathematics}
+
+While this paper is about Lean for software engineering rather than math, we must talk about math because Lean's success is due to its core community, which is mathematicians.
+
+Lean has captured the attention of the math community insofar as they use computers to do math, and has achieved a critical mass of users, hitting an inflection point sometime in early 2024, sometime after Tao started using it.
+
+\subsection{The Blueprint Model: Waterfall that Works} % waterfall style development
+
+Lean has also started on the infinitary side of math (analysis) not just algebra.
+
+notable projects
+
+\todo{add contribution graph}
+\todo{add Lines of code graph for mathlib}
+\todo{Discuss inflection point and dominance in math}
+
+\subsection{Notable Contributors}
+\subsubsection{Terry Tao}
+\todo{Discuss Tao's breadth, reference Gowers' remarks}
+
+\subsubsection{Peter Scholze}
+\todo{Discuss depth - 5 lines to 60000 example}
+
+\section{line and column for assumptions}
+
+Consider this \texttt{structure} (like a \texttt{struct} in C/Rust or a \texttt{class} in Python). It has 5 fields: 3 for data and 2 for assumptions/"proofs":
+
+\begin{minted}{lean}
+
+/--simplified from lean-inf--/
+structure Polynomial where
+    coeffs : HashMap Exponent Coeff
+
+structure LeviCivitaNumber where
+    std : Coeff
+    infinitesimal : Polynomial
+    infinite : Polynomial
+
+    /-- Ensures all infinitesimal terms have negative exponents. -/
+    _pf_infinitesimal_keys_negative : infinitesimal.coeffs.all (fun exponent _ => exponent < 0) := by (first | rfl | sorry)
+    /-- Ensures all infinite terms have positive exponents. -/
+    _pf_infinite_keys_positive : infinite.coeffs.all (fun exponent _ => exponent > 0) := by (first | rfl | sorry)
+\end{minted}
+
+Function applications are written as \texttt{f x} instead of \texttt{f(x)}, like in shell scripts or Haskell. \texttt{fun} is an anonymous function, and \texttt{fun input1 input2 => output} is a function that take 2 arguments \texttt{input1, input2} and returns \texttt{output}, equivalent to \texttt{lambda input1, input2 : output} in Python.
+
+This allows writing and calculating with expressions like $\epsilon^2 H^3 + \epsilon H^2 + 1$ where $\epsilon$ is an infinitesimal and $H$ is its reciprocal, an infinite number.
+
+The data structure assumes that $H$ is the basic "unit", and that all other terms are in terms of $H$. So $H$ has order 1, all infinite terms have positive order, and all infinitesimal terms have negative order. Standard finite numbers have order 0.
+
+The last 2 fields ensure this assumption, because if it was broken, there would be a bug.
+
+Here's the equivalent in Python:
+
+\begin{minted}{python}
+
+@dataclass
+class Polynomial:
+    """Simplified from lean-inf"""
+    coeffs: Dict[Exponent, Coeff]
+
+@dataclass
+class LeviCivitaNumber:
+    std: Coeff
+    # XXX: Exponents MUST be negative
+    infinitesimal: Polynomial
+    # XXX: Exponents MUST be positive
+    infinite: Polynomial
+\end{minted}
+
+This illustrates a benefit: assumptions become explicit, to the point of having line and column numbers to point out the exact place where the assumption is made (definition site) and filled/violated (use site). And Lean will not let such assumptions slip by without at least a compiler warning that \texttt{sorry} was used. If you don't use sorry, then the code will not compile without proof that the assumptions hold.
+
+If something went wrong in the Python code, the answer to "where did it go wrong" may not even be well-defined since the comments are not part of the formal code.
+
+But wouldn't proving it each time be a pain? Yes, it often is. But that's what the \texttt{:= by (first | rfl | sorry)} is for. That line is a default value for the field, and the \texttt{by} clause is a proof that the field satisfies the property. The \texttt{first} tactic tries all the following, separated by \texttt{|}: \texttt{rfl} (basic simplification), \texttt{sorry} (give up).
+
+The \texttt{sorry} is what makes it practical: it lets you write the code without having to figure out the proof, but you gain the advantage of assumptions becoming explicit code. It looks a bit tacky to write \texttt{sorry} everywhere, but there's much uglier code out there in the wild. And you can always fill it in later with actual proofs.
+
+\section{Technical Implementation}
+\todo{Reference technical papers}
+
+\section{Case Studies}
+\subsection{llm.lean}
+Here is a more involved snippet, modified from llm.lean, showing how Lean can handle the details of a machine learning algorithm. \todo{cite}
+
+\begin{minted}{lean}
+structure Vector (len: Nat)  where
+    /-- Underlying data.-/
+    data: Array Float
+    /-- a proof that `data.length = len`.-/
+    sizeIsRight: data.size = len := by first | rfl | sorry
+
+/-- A dense layer without bias. In corresponds to the rows of a matrix, Out to the columns.-/
+structure DenseNoBias (In: Nat) (Out: Nat) where
+    weights : Vector Out (Vector In)
+
+def attention_backwards
+    (dout: Vector T (Vector Dₖ))
+    (q: Vector T (Vector Dₖ))
+    (k: Vector T (Vector Dₖ))
+    (v: Vector T (Vector Dₖ))
+    -- returns tuple of (dq, dk, dv)
+    : (Vector T (Vector Dₖ)) × (Vector T (Vector Dₖ)) × (Vector T (Vector Dₖ)) :=
+    let a := q * k.transpose
+    let norm_factor :=  1 / (Dₖ.toFloat).sqrt
+    let a1 := a.map (fun x => x.map (fun y => y * norm_factor)) -- normalize
+    let a2 := a1 + tril (-Float.inf) -- mask
+    let a3 := a2.map softmax
+
+    let dv := a3.transpose * dout
+    let da3 := dout * v.transpose
+    let da2 := Vector.zipWith softmax_backward da3 a3 -- softmax derivative
+
+    let da1 := da2.map (fun x => x.map (fun y => y * norm_factor)) -- normalize
+
+    let (dq, dk) := (da1 * q, da1 * k)
+
+    (dq, dk, dv)
+\end{minted}
+
+This defines a function that computes the derivative of the attention mechanism, which is a key component of the Transformer model. The implementation of it took less than a minute despite having a bug at first.
+
+The following is all that we needed to write
+
+\begin{minted}{lean}
+def attention_backwards
+    (dout: Vector T (Vector Dₖ))
+    (q: Vector T (Vector Dₖ))
+    (k: Vector T (Vector Dₖ))
+    (v: Vector T (Vector Dₖ))
+    -- (dq, dk, dv)--^cursor is here
+\end{minted}
+
+Claude 3.5 immediately suggested the rest of the code. However, it had 2 bugs, isolated in the following code:
+
+\begin{minted}{lean}
+let dv := a3 * dout.transpose
+let da3 := dout * v
+\end{minted}
+
+\texttt{dv} had a transpose in the wrong place, and \texttt{da3} had none. However, the type checker spat out shape errors within milliseconds, and Claude 3.5 immediately suggested the fix, before we could even ask. One more tab keypress, and it was fixed and finished.
+
+\subsection{lean-inf}
+\todo{Details needed}
+
+\subsection{scilean}
+\todo{Discuss sorry\_proof and leanagent integration}
+
+\section{Opinions}
+\subsection{When to prove vs when to test}
+\subsection{Knowing When You're Done: Verification and Completion}
+\todo{Discuss how the prover indicates completion}
+
+\section{The Key to Productivity: Writing It Down as Code Instead of Comments}
+\todo{Discuss strategic use of partial proofs}
+\todo{Use scilean as running example}
+
+\section{Man Can't Live by Mathematics Alone}
+\todo{Software engineering benefits from case studies}
+
+\section{AI Integration}
+\todo{Discuss regular software interaction with provers}
+\todo{contrast with AlphaProof}
+
+\section{The Role of 'sorry'}
+\todo{Strategic use of sorry in development}
+
+\section{Metaprogramming and Notation}
+\todo{Discuss Levi-Civita notation example}
+\todo{Cover tooling and verification benefits}
+
+\section{Granular Control}
+Like how Rust has \texttt{unsafe} for granular analysis (cite Rust for C developers),
+Lean has this for semantics and assumptions. Software is built on assumptions.
+
+\begin{ack}
+\end{ack}
+
+\section*{References}
+
+{
+  \small
+  % Original outline preserved as comments for reference
+  % - What (eh basic intro covers this)
+  % - Why
+  %     - software + math
+  % - Who (lean has a community of mathematicians, large enough that it's hit an inflection point, and now dominates math)
+  %     - the rising sea
+  %     - this will only continue
+  %     - terry tao
+  %         - broadest
+  %             - see gowers remark praising him
+  %     - scholze
+  %         - deepest, this is controversial, but gives number for how deep math can get where 5 lines unfolds to 60000
+  % - how (just link to technical papers for this, not my prob)
+  % - case studies
+  %     - llm.lean
+  %     - lean-inf
+  %     - scilean
+  %         - sorry_proof
+  %         - leanagent filling it in
+  % - knowing when you're done
+  %     - the prover just tells you
+  % - the key to productivity: don't prove it all, but write it down
+  %     - use scilean case study as running example
+  % - not for math alone
+  %     - use case studies to show benefits for software
+  % - natural interaction with AI
+  %     - alphaproof is in the news but less appreciated is how the prover interacts with REGULAR software
+  % - sometimes getting ahead means saying sorry
+  % - metaprogramming
+  %     - example: levi-civita notation
+  %     - custom notation that is verifiable with good editor/tooling support goes far
+}
+
+\appendix
+
+\section{Appendix / supplemental material}
+
+Optionally include supplemental material (complete proofs, additional experiments and plots) in appendix.
+All such materials \textbf{SHOULD be included in the main submission.}
+
+\end{document}
