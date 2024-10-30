@@ -139,7 +139,7 @@ structure LeviCivitaNumber where
     _pf_infinite_keys_positive : infinite.coeffs.all (fun exponent _ => exponent > 0) := by (first | rfl | sorry)
 \end{minted}
 
-Function applications are written as \texttt{f x} instead of \texttt{f(x)}, like in shell scripts or Haskell. \texttt{fun} is an anonymous function, and \texttt{fun input1 input2 => output} is a function that take 2 arguments \texttt{input1, input2} and returns \texttt{output}, equivalent to \texttt{lambda input1, input2 : output} in Python.
+A note on syntax: Function applications are written as \texttt{f x} instead of \texttt{f(x)}, like in shell scripts or Haskell. \texttt{fun} is an anonymous function, and \texttt{fun input1 input2 => output} is a function that take 2 arguments \texttt{input1, input2} and returns \texttt{output}, equivalent to \texttt{lambda input1, input2: output} in Python. \texttt{/--..-/} is a doc comment, like \texttt{///} in Rust or a powered-up docstring in Python.
 
 This allows writing and calculating with expressions like $\epsilon^2 H^3 + \epsilon H^2 + 1$ where $\epsilon$ is an infinitesimal and $H$ is its reciprocal, an infinite number.
 
@@ -153,8 +153,7 @@ Here's the equivalent in Python:
 
 @dataclass
 class Polynomial:
-    """Simplified from lean-inf"""
-    coeffs: Dict[Exponent, Coeff]
+    coeffs: dict[Exponent, Coeff]
 
 @dataclass
 class LeviCivitaNumber:
@@ -165,7 +164,7 @@ class LeviCivitaNumber:
     infinite: Polynomial
 \end{minted}
 
-This illustrates a benefit: assumptions become explicit, to the point of having line and column numbers to point out the exact place where the assumption is made (definition site) and filled/violated (use site). And Lean will not let such assumptions slip by without at least a compiler warning that \texttt{sorry} was used. If you don't use sorry, then the code will not compile without proof that the assumptions hold.
+This illustrates a benefit: assumptions become explicit, to the point of having line and column numbers to point out the exact place where an assumption is made (definition site) or satisfied/violated (use site). And Lean will not let such assumptions slip by without at least a compiler warning that \texttt{sorry} was used. If you don't use \texttt{sorry}, then the code will not compile without proof that the assumptions hold.
 
 If something went wrong in the Python code, the answer to "where did it go wrong" may not even be well-defined since the comments are not part of the formal code.
 
@@ -173,13 +172,17 @@ But wouldn't proving it each time be a pain? Yes, it often is. But that's what t
 
 The \texttt{sorry} is what makes it practical: it lets you write the code without having to figure out the proof, but you gain the advantage of assumptions becoming explicit code. It looks a bit tacky to write \texttt{sorry} everywhere, but there's much uglier code out there in the wild. And you can always fill it in later with actual proofs.
 
+And if even that is too much work, you just write test cases like in any other language. So you get the best of both worlds: the safety of a theorem prover, and the flexibility of a general purpose programming language.
+
 \section{Technical Implementation}
 \todo{Reference technical papers}
 
 \section{Case Studies}
 \subsection{llm.lean}
-Here is a more involved snippet, modified from llm.lean, showing how Lean can handle the details of a machine learning algorithm. \todo{cite}
+Here is a more involved snippet, modified from llm.lean\todo{link}. It defines a function that computes the derivative of the attention mechanism, key to the Transformer model. The implementation of it took less than a minute despite having bug(s) at first.
 
+\todo{cite}
+\todo{fix the times symbol rendering weird}
 \begin{minted}{lean}
 structure Vector (len: Nat)  where
     /-- Underlying data.-/
@@ -215,9 +218,7 @@ def attention_backwards
     (dq, dk, dv)
 \end{minted}
 
-This defines a function that computes the derivative of the attention mechanism, which is a key component of the Transformer model. The implementation of it took less than a minute despite having a bug at first.
-
-The following is all that we needed to write
+The following is all that we needed to write:
 
 \begin{minted}{lean}
 def attention_backwards
@@ -235,25 +236,33 @@ let dv := a3 * dout.transpose
 let da3 := dout * v
 \end{minted}
 
-\texttt{dv} had a transpose in the wrong place, and \texttt{da3} had none. However, the type checker spat out shape errors within milliseconds, and Claude 3.5 immediately suggested the fix, before we could even ask. One more tab keypress, and it was fixed and finished.
+\texttt{dv} had a transpose in the wrong place, and \texttt{da3} had none. However, the type checker spat out shape errors within milliseconds, and Claude 3.5 immediately suggested the fix, before we could even read the error message. One more tab keypress, and it was fixed and finished.
 
-\subsection{lean-inf}
-\todo{Details needed}
+A good comparison is Rust's borrow checker: it will not let you mess up ownership rules. And that creates a virtuous cycle with AI tools: they can use their flexible intuition to write code, and the verifier can, well, \textit{verify} it. Feeding back errors lets the AI fix its own mistakes.
 
-\subsection{scilean}
-\todo{Discuss sorry\_proof and leanagent integration}
+But the verifier here is much more sophisticated, since it can check not just ownership, but essentially anything. In a sense, the Rust borrow checker is a verifier for one property (ownership), and the Lean type checker is a verifier for \textit{any} property.
+
+\subsection{Code review: Filling in \texttt{sorry} later}
+
+Consider SciLean\todo{link,cite}. It is a scientific computing assistant that is like a hybrid between Jax\todo{link} and a computer algebra system (CAS). Its creator, Tomas Skrivan, is a proponent of "sorry-friendly programming", so SciLean has over 200 \texttt{sorry}s in 147 files as of this writing.
+
+The authors of LeanAgent\todo{link} recently submitted a pull request to SciLean that fills in \texttt{sorry}s across 15 files. Many are simple proofs, but several use library specific knowledge, and most importantly they were proved without human effort.
+
+This shows how such a tool changes the nature of code review: if the definitions are correct, and the code compiles, then the code is correct.
+
+Normally code review is a tedious process of reading through code, and checking that it does what it's supposed to do, before actually reviewing its readability, style, and other concerns. But here the whole checking step is automated, so the reviewer can focus purely on the quality of the code.
+
+With regard to AI specifically, a major problem is correctness, which hurts scalability. Deep chains of reasoning are hard, even for humans. The glut of CVEs for C/C++ is a (grim) testament to this. \todo{microsoft cve paper, 75\% memory related, Rust helped}.
+
+\todo{optimizing array expressions, software cares about fast, and for optimizations, need to be correct}
+
+\todo{img of diff}
+
+And because there is often an asymmetry between specification (writing down the desired properties) and implementation (finding code that satisfies those properties), the reviewer can get useful work out of less experienced colleagues (human or machine) by allowing them to bash their heads against the problem until it passes the verifier, and then reviewing it, confident that the main task is done. The system acts like an engine that turns fuzzy intuition into useful work through the precision of mathematics.
 
 \section{Opinions}
-\subsection{When to prove vs when to test}
-\subsection{Knowing When You're Done: Verification and Completion}
+
 \todo{Discuss how the prover indicates completion}
-
-\section{The Key to Productivity: Writing It Down as Code Instead of Comments}
-\todo{Discuss strategic use of partial proofs}
-\todo{Use scilean as running example}
-
-\section{Man Can't Live by Mathematics Alone}
-\todo{Software engineering benefits from case studies}
 
 \section{AI Integration}
 \todo{Discuss regular software interaction with provers}
