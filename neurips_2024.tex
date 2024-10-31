@@ -40,37 +40,20 @@
 \maketitle
 
 \begin{abstract}
-  Lean 4 combines formal verification with systems programming. Unlike typical
-  theorem provers, it runs at 20-50\% of C++ speeds. Its \texttt{sorry} construct
-  enables incremental verification - developers can specify properties now and
-  prove them later. Through case studies in ML infrastructure (llm.lean) and
-  scientific computing (scilean), I show how this approach maintains correctness
-  without slowing development. Lean 4's metaprogramming and custom notation let
-  developers build domain-specific abstractions with formal guarantees. The result:
-  practical software that's both fast and correct.
+  Lean 4 combines programming and theorem proving. Unlike typical theorem provers, it runs at 20--50\% of C++ speeds. Its \texttt{sorry} construct enables incremental verification---developers can specify properties now and prove them later. Through case studies in ML infrastructure (\texttt{llm.lean}) and scientific computing (\texttt{SciLean}), I show how this approach allows moving fast without breaking things. Lean 4's metaprogramming and custom notation let developers build domain-specific abstractions with formal guarantees. The result: practical software that's both fast and correct.
 \end{abstract}
 
 \tableofcontents
 
 \section{Introduction}
-\todo{Basic intro to Lean 4}
-Lean 4 is a programming language which is also a theorem prover.
 
-It is not a language for beginners
-
-\begin{minted}{lean}
-def sum (list : List Nat) : Nat := Id.run do
-  let mut total := 0
-  for element in list do
-    total := total + element
-  return total
-\end{minted}
+Lean 4 is a programming language that is also a theorem prover. The combination of the two is what's notable, because there are \textit{many} general-purpose programming languages, and there are several theorem provers. But few which are both.
 
 \section{Why Lean 4?}
 
-There are \textit{many} programming languages, and there are many theorem provers. But few are both. Most programming languages have to resort to custom string parsing, like SymPy, which fundamentally limits their appeal to their natural userbase: mathematicians.
+There are  But few are both. Most programming languages have to resort to custom string parsing, like SymPy, which fundamentally limits their appeal to their natural userbase: mathematicians.
 
-Most theorem provers are only technically programming languages, and lack tooling for software engineering like a package manager, build tool, documentation tool, linter, etc. They are usually implemented in a separate language like OCaml (Coq) or Haskell (Agda), and tend to be slow.\todo{cite benchmark for coq/agda speed}
+Most theorem provers are only technically programming languages, and lack tooling for software engineering like a package manager, build tool, documentation tool, linter, etc. They are usually implemented in a separate language like OCaml (Coq) or Haskell (Agda), and tend to be slow.\todo{cite benchmark for Coq/Agda speed}
 
 This quote from one of the creators of Isabelle illustrates the issue:
 
@@ -78,30 +61,28 @@ This quote from one of the creators of Isabelle illustrates the issue:
 
 \begin{quote}
   But university departments are not software houses. Programs like Isabelle are not products: when they have served
-  their purpose, they are discarded.% TODO add back: \cite{isabelle-isar-ref}
+  their purpose, they are discarded. \todo{cite \url{https://arxiv.org/pdf/cs/9301106}}
 
   Lawrence C. Paulson, ``Isabelle: The Next 700 Theorem Provers''
+
 \end{quote}
 
-The issue is that a theorem prover \textit{is} a piece of software, and software grows. There is a lot of overlap between the needs of a theorem prover and a general purpose programming language, and being good at both unlocks many benefits.
+The issue is that a theorem prover \textit{is} a piece of software, and software grows. There is a lot of overlap between the needs of a theorem prover and a general-purpose programming language, and being good at both unlocks many benefits. For just one example, Lean can implement a linter to check that imports are minimal in Lean \url{https://github.com/leanprover-community/mathlib4/pull/18303/files}
 
-% example: https://github.com/leanprover-community/mathlib4/pull/18303/files (linter that checks minimal imports)
+\textit{Anecdata}: Many people I have encountered, over half of whom are very into programming languages, just implicitly expected Lean to be slow---like 100x slower than C. They were very surprised to find that's not the case.
 
-% https://old.reddit.com/r/haskell/comments/z55hha/review_of_lean_4/
-% https://leanprover.github.io/papers/do.pdf (mutable notation, instead of map/filter/fold)
+Idris is the main other dependent type language that is focused on programmers, but actually its lack of proving infrastructure and community have really held it back. ATS is like this but again no community.
 
-\todo{that reddit comment}
+Lean is not gonna go away from the math community, and the infrastructure built for the software needs of the math community acts as a rising tide for software engineering too.
 
-\todo{Discuss software + math integration}
-\todo{mention how fast lean 4 is, 20-50\% speed of C++ (cite)}
 \section{The Lean Community}
 \subsection{A Critical Mass in Mathematics}
 
 While this paper is about Lean for software engineering rather than math, we must talk about math because Lean's success is due to its core community, which is mathematicians.
 
 Lean has captured the attention of the math community insofar as they use computers to do math, and has achieved a critical mass of users, hitting an inflection point sometime in early 2024, sometime after Tao started using it.
-
-\subsection{The Blueprint Model: Waterfall that Works} % waterfall style development
+\subsection{Escaping the Lisp Curse}
+\subsection{The Blueprint Model: Waterfall that Works}
 
 Lean has also started on the infinitary side of math (analysis) not just algebra.
 
@@ -113,10 +94,10 @@ notable projects
 
 \subsection{Notable Contributors}
 \subsubsection{Terry Tao}
-\todo{Discuss Tao's breadth, reference Gowers' remarks}
+Terry Tao's breadth of work has brought attention to Lean. His use of Lean demonstrates its applicability to a wide range of mathematical areas, encouraging others to explore the language. His projects attract about 50 contributors and he has spoken on how Lean's verifier enables people who are not mathematicians to nonetheless contribute to very advanced mathematics.\todo{cite the youtube video from ICM}
 
 \subsubsection{Peter Scholze}
-\todo{Discuss depth - 5 lines to 60000 example}
+Peter Scholze's Liquid Tensor project is another example of a large-scale effort that has contributions from non-experts. It formalizes perfectoid spaces and the necessary commutative algebra, before proving a key lemma in Scholze's work. This is a very deep topic which only Scholze himself really had full knowledge of, yet the work was mostly done by others in a similar way to Tao's (an anachronistic explanation, since Scholze's work came first). A famous example involves a five-line proof expanding into a 60,000-line Lean formalization~\cite{liquid-tensor}. This showcases Lean's ability to handle complex mathematics rigorously.
 
 \section{line and column for assumptions}
 
@@ -168,7 +149,7 @@ This illustrates a benefit: assumptions become explicit, to the point of having 
 
 If something went wrong in the Python code, the answer to "where did it go wrong" may not even be well-defined since the comments are not part of the formal code.
 
-But wouldn't proving it each time be a pain? Yes, it often is. But that's what the \texttt{:= by (first | rfl | sorry)} is for. That line is a default value for the field, and the \texttt{by} clause is a proof that the field satisfies the property. The \texttt{first} tactic tries all the following, separated by \texttt{|}: \texttt{rfl} (basic simplification), \texttt{sorry} (give up).
+But wouldn't proving this positivity assumption each time be a pain? Yes, it often is. But that's what the \texttt{:= by (first | rfl | sorry)} is for. That line is a default value for the field, and the \texttt{by} clause is a proof that the field satisfies the property. The \texttt{first} tactic tries all the following, separated by \texttt{|}: \texttt{rfl} (basic simplification), \texttt{sorry} (give up).
 
 The \texttt{sorry} is what makes it practical: it lets you write the code without having to figure out the proof, but you gain the advantage of assumptions becoming explicit code. It looks a bit tacky to write \texttt{sorry} everywhere, but there's much uglier code out there in the wild. And you can always fill it in later with actual proofs.
 
@@ -190,9 +171,9 @@ structure Vector (len: Nat)  where
     /-- a proof that `data.length = len`.-/
     sizeIsRight: data.size = len := by first | rfl | sorry
 
-/-- A dense layer without bias. In corresponds to the rows of a matrix, Out to the columns.-/
-structure DenseNoBias (In: Nat) (Out: Nat) where
-    weights : Vector Out (Vector In)
+/-- A dense layer without bias.-/
+structure DenseNoBias (Rows: Nat) (Cols: Nat) where
+    weights : Vector Cols (Vector Rows)
 
 def attention_backwards
     (dout: Vector T (Vector Dₖ))
@@ -242,31 +223,30 @@ A good comparison is Rust's borrow checker: it will not let you mess up ownershi
 
 But the verifier here is much more sophisticated, since it can check not just ownership, but essentially anything. In a sense, the Rust borrow checker is a verifier for one property (ownership), and the Lean type checker is a verifier for \textit{any} property.
 
-\subsection{Code review: Filling in \texttt{sorry} later}
+\subsection{Code Review: Filling in \texttt{sorry} Later}
 
-Consider SciLean\todo{link,cite}. It is a scientific computing assistant that is like a hybrid between Jax\todo{link} and a computer algebra system (CAS). Its creator, Tomas Skrivan, is a proponent of "sorry-friendly programming", so SciLean has over 200 \texttt{sorry}s in 147 files as of this writing.
+Consider \texttt{SciLean}\todo{link,cite}. It is a scientific computing assistant that is like a hybrid between Jax and a computer algebra system (CAS). Its creator, Tomas Skrivan, is a proponent of "sorry-friendly programming", so \texttt{SciLean} has over 200 \texttt{sorry}s in 147 files as of this writing.
 
-The authors of LeanAgent\todo{link} recently submitted a pull request to SciLean that fills in \texttt{sorry}s across 15 files. Many are simple proofs, but several use library specific knowledge, and most importantly they were proved without human effort.
+The authors of LeanAgent\todo{link} recently submitted a pull request to \texttt{SciLean} that fills in \texttt{sorry}s across 15 files. Many are simple proofs, but several use library-specific knowledge, and most importantly they were proved without human effort.
+\todo{img of diff}
 
 This shows how such a tool changes the nature of code review: if the definitions are correct, and the code compiles, then the code is correct.
 
 Normally code review is a tedious process of reading through code, and checking that it does what it's supposed to do, before actually reviewing its readability, style, and other concerns. But here the whole checking step is automated, so the reviewer can focus purely on the quality of the code.
 
-With regard to AI specifically, a major problem is correctness, which hurts scalability. Deep chains of reasoning are hard, even for humans. The glut of CVEs for C/C++ is a (grim) testament to this. \todo{microsoft cve paper, 75\% memory related, Rust helped}.
+With regard to AI specifically, a major problem is correctness, which hurts scalability. Deep chains of reasoning are hard, even for humans. The glut of CVEs for C/C++ is a (grim) testament to this. By Micosoft's estimation, \~ 70\% of CVEs were memory-safety related.
 
 \todo{optimizing array expressions, software cares about fast, and for optimizations, need to be correct}
 
 \todo{img of diff}
 
-And because there is often an asymmetry between specification (writing down the desired properties) and implementation (finding code that satisfies those properties), the reviewer can get useful work out of less experienced colleagues (human or machine) by allowing them to bash their heads against the problem until it passes the verifier, and then reviewing it, confident that the main task is done. The system acts like an engine that turns fuzzy intuition into useful work through the precision of mathematics.
-
-\section{Opinions}
-
-\todo{Discuss how the prover indicates completion}
-
 \section{AI Integration}
-\todo{Discuss regular software interaction with provers}
-\todo{contrast with AlphaProof}
+
+Lean's strong interaction with AI is key to its success. The asymmetry between specification and implementation allows AI to assist with the flexible intuition required for code generation, while Lean checks specifications rigidly. This creates a virtuous cycle where AI-generated code is verified by Lean, and errors are systematically identified and corrected.
+
+\section{The Role of \texttt{sorry}}
+
+The \texttt{sorry} construct in Lean acts as a placeholder for proofs, enabling incremental development. It's akin to leaving TODO comments in code but with the added benefit that Lean tracks these incomplete proofs. The code compiles and runs, allowing for testing and iteration. Gradually, \texttt{sorry}s can be filled in, either manually or with AI assistance, leading to fully verified software.
 
 \section{The Role of 'sorry'}
 \todo{Strategic use of sorry in development}
@@ -279,51 +259,50 @@ And because there is often an asymmetry between specification (writing down the 
 Like how Rust has \texttt{unsafe} for granular analysis (cite Rust for C developers),
 Lean has this for semantics and assumptions. Software is built on assumptions.
 
-\begin{ack}
-\end{ack}
+\section{programming conveniences}
+
+\todo{include in section of conveniences}
+\begin{minted}{lean}
+def sum (list : List Nat) : Nat := Id.run do
+  let mut total := 0
+  for element in list do
+    total := total + element
+  return total
+\end{minted}
+
+\section{Bug finding}
+
+string.splitOn
+
+found bug when trying to prove a function matched its spec, in this case that splits that are more than 1 character long fail.
+
+this bug was found because the function simply does not match its spec, and the verifier won't let it pass.
+
+\section{Conclusion}
+
+The apex predator in software is complexity. Lean's formal verification helps manage complexity by making code more understandable and correct. Its integration with AI and its strong community support position Lean 4 as a powerful tool for software engineering.
 
 \section*{References}
 
-{
-  \small
-  % Original outline preserved as comments for reference
-  % - What (eh basic intro covers this)
-  % - Why
-  %     - software + math
-  % - Who (lean has a community of mathematicians, large enough that it's hit an inflection point, and now dominates math)
-  %     - the rising sea
-  %     - this will only continue
-  %     - terry tao
-  %         - broadest
-  %             - see gowers remark praising him
-  %     - scholze
-  %         - deepest, this is controversial, but gives number for how deep math can get where 5 lines unfolds to 60000
-  % - how (just link to technical papers for this, not my prob)
-  % - case studies
-  %     - llm.lean
-  %     - lean-inf
-  %     - scilean
-  %         - sorry_proof
-  %         - leanagent filling it in
-  % - knowing when you're done
-  %     - the prover just tells you
-  % - the key to productivity: don't prove it all, but write it down
-  %     - use scilean case study as running example
-  % - not for math alone
-  %     - use case studies to show benefits for software
-  % - natural interaction with AI
-  %     - alphaproof is in the news but less appreciated is how the prover interacts with REGULAR software
-  % - sometimes getting ahead means saying sorry
-  % - metaprogramming
-  %     - example: levi-civita notation
-  %     - custom notation that is verifiable with good editor/tooling support goes far
-}
-
 \appendix
 
-\section{Appendix / supplemental material}
+\section{Appendix: Additional Notes}
 
-Optionally include supplemental material (complete proofs, additional experiments and plots) in appendix.
-All such materials \textbf{SHOULD be included in the main submission.}
+\subsection{The Lisp Curse}
+
+Lean avoids the "Lisp curse" by providing a rich standard library and active community support, mitigating the fragmentation that can occur with powerful metaprogramming capabilities.
+
+\subsection{Community Impact}
+
+Lean's software needs act as a rising tide for the whole language and ordinary programming. Its synergy with the mathematics community ensures that it won't fade away like some other niche languages.
+
+\begin{ack}
+  I thank the Lean community for their contributions and support.
+\end{ack}
+
+\medskip
+
+% \bibliographystyle{plain}
+% \bibliography{neurips_2024}
 
 \end{document}
