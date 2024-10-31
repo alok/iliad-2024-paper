@@ -45,19 +45,17 @@
 
 \tableofcontents
 
-\section{Introduction}
+\section{Introduction: Two Worlds}
 
-Lean 4 is a programming language that is also a theorem prover. The combination of the two is what's notable, because there are \textit{many} general-purpose programming languages, and there are several theorem provers. But few which are both.
+Lean 4 is a programming language that is also a theorem prover. It straddles the worlds of mathematics and software engineering. The combination of the two is notable because there are \textit{many} general-purpose programming languages and several theorem provers. But few are both. And none which have the unified community of Lean.
 
-\section{Why Lean 4?}
+Lean is fast. It runs at 20--50\% of C++'s speed, much faster than Python, Coq, and Agda.\todo{cite benchmark for Coq/Agda speed} Also uniquely among languages in its niche, Lean is implemented in itself. Agda is implemented in Haskell, Coq is implemented in OCaml, and Isabelle is implemented in Standard ML. Idris2 is implemented in itself, but its theorem proving capabilities are much less developed.
 
-There are  But few are both. Most programming languages have to resort to custom string parsing, like SymPy, which fundamentally limits their appeal to their natural userbase: mathematicians.
+It has many niceties for software engineering, similar to Rust. Like Rust's \texttt{cargo}, it has a builtin package manager and build tool, \texttt{Lake} \todo{cite lake}, a package repository like crates.io (Reservoir\todo{cite}), documentation (Lake) \todo{doc comments, verso}, and extensible linter with informative error messages. Several of these features are (unfortunately) unique to Lean among theorem provers, though not among general-purpose languages.
 
-Most theorem provers are only technically programming languages, and lack tooling for software engineering like a package manager, build tool, documentation tool, linter, etc. They are usually implemented in a separate language like OCaml (Coq) or Haskell (Agda), and tend to be slow.\todo{cite benchmark for Coq/Agda speed}
+But why do we need both?
 
 This quote from one of the creators of Isabelle illustrates the issue:
-
-(Lean 4 lacks a formatter, but thankfully AI fills this gap very well.)
 
 \begin{quote}
   But university departments are not software houses. Programs like Isabelle are not products: when they have served
@@ -67,7 +65,7 @@ This quote from one of the creators of Isabelle illustrates the issue:
 
 \end{quote}
 
-The issue is that a theorem prover \textit{is} a piece of software, and software grows. There is a lot of overlap between the needs of a theorem prover and a general-purpose programming language, and being good at both unlocks many benefits. For just one example, Lean can implement a linter to check that imports are minimal in Lean \url{https://github.com/leanprover-community/mathlib4/pull/18303/files}
+The issue is that a theorem prover \textit{is} a piece of software, and software grows over time. There is a lot of overlap between the needs of a theorem prover and a general-purpose programming language, and being good at both unlocks many benefits. For just one example, Lean can implement a linter to check that imports are minimal in Lean itself. \url{https://github.com/leanprover-community/mathlib4/pull/18303/files}. A language implemented in itself avoids the 2-language problem, and lets less experienced users contribute to "advanced" software like the compiler without having to learn something extra (like C for contributing to the Python compiler).
 
 \textit{Anecdata}: Many people I have encountered, over half of whom are very into programming languages, just implicitly expected Lean to be slow---like 100x slower than C. They were very surprised to find that's not the case.
 
@@ -80,14 +78,30 @@ Lean is not gonna go away from the math community, and the infrastructure built 
 
 While this paper is about Lean for software engineering rather than math, we must talk about math because Lean's success is due to its core community, which is mathematicians.
 
-Lean has captured the attention of the math community insofar as they use computers to do math, and has achieved a critical mass of users, hitting an inflection point sometime in early 2024, sometime after Tao started using it.
+Lean has captured the attention of the math community and gone past an inflection point to achieve a critical mass of users. Anecdotally, this inflection point was sometime in late 2023/early 2024, helped by Terence Tao using Lean.
+
 \subsection{Escaping the Lisp Curse}
-\subsection{The Blueprint Model: Waterfall that Works}
+
+This unity gives Lean a chance to break the Lisp Curse for software engineering.
+
+The Lisp Curse is a phenomenon where powerful (meta)programming capabilities lead to fragmentation - everyone writes their own solution rather than collaborating on a shared one. This creates a tragedy of the commons where many half-finished solutions exist but none are production-ready. The name stems from Lisp's flexibility: it's so easy to write code that there's little incentive to reuse or polish existing solutions.
+
+As Mark Tarver provocatively put it \todo{cite Bipolar lisp programmer}
+
+\begin{quote}
+  One of these is the inability to finish things off properly... Lisp allows you to just chuck things off so easily, and it is easy to take this for granted. I saw this 10 years ago when looking for a GUI to my Lisp... No problem, there were 9 different offerings. The trouble was that none of the 9 were properly documented and none were bug free. Basically each person had implemented his own solution and it worked for him so that was fine...
+
+  Now in contrast, the C/C++ approach is quite different. It's so damn hard to do anything with tweezers and glue that anything significant you do will be a real achievement. You want to document it. Also you're liable to need help in any C project of significant size; so you're liable to be social and work with others. You need to, just to get somewhere.
+\end{quote}
+
+The task of formalizing mathematics is "so damn hard" that it unites the community. And this is not a theoretical claim, this has already happened. mathlib is by far the dominant library in Lean, though there are many smaller projects. But they operate with the support of the community, and the bazaar \todo{cite raymond} upstreams finished work to mathlib's cathedral\todo{same citation as bazaar}. \todo{cite a bunch of random small lean projects}
+
+Whether Lean can escape this for the software engineering side is less clear. But its mathematician userbase has so far also united around common software needs.
 
 Lean has also started on the infinitary side of math (analysis) not just algebra.
-
+\subsection{The Blueprint Model: Waterfall that Works}
 notable projects
-
+This has paid off, and Lean has
 \todo{add contribution graph}
 \todo{add Lines of code graph for mathlib}
 \todo{Discuss inflection point and dominance in math}
